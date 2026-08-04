@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getCustomers, addCustomer } from "../services/api";
-import CardCustomers from "../components/CardCustomers";
+import { getCustomers, addCustomer, deleteCustomer } from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 export default function Customers() {
@@ -8,15 +7,15 @@ export default function Customers() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
-  const [selectedItem, setSelectedItem] = useState(null)
+  const [successMessage, setSuccessMessage] = useState(null);
 
-  const navigate = useNavigate();
+  const Navigate = useNavigate();
 
-  // State form menggunakan gmaps_link
   const [formData, setFormData] = useState({
     name: "",
     gmaps_link: "",
-    demand: ""
+    demand: "",
+    image: null
   });
 
   const fetchCustomerData = async () => {
@@ -40,23 +39,32 @@ export default function Customers() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (e) => {
+    setFormData((prev) => ({ ...prev, image: e.target.files[0] }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
 
     try {
-      const payload = {
-        name: formData.name,
-        gmaps_link: formData.gmaps_link,
-        demand: parseInt(formData.demand, 10)
-      };
+      // Bungkus data ke dalam FormData untuk mendukung file upload
+      const dataToSend = new FormData();
+      dataToSend.append("name", formData.name);
+      dataToSend.append("gmaps_link", formData.gmaps_link);
+      dataToSend.append("demand", formData.demand);
+      if (formData.image) {
+        dataToSend.append("image", formData.image);
+      }
 
-      await addCustomer(payload);
+      await addCustomer(dataToSend);
 
-      // Reset form dan muat ulang data
-      setFormData({ name: "", gmaps_link: "", demand: "" });
+      // Reset form
+      setFormData({ name: "", gmaps_link: "", demand: "", image: null });
       await fetchCustomerData();
+      setSuccessMessage("Pelanggan berhasil ditambahkan!");
+      setTimeout(() => setSuccessMessage(null), 3000); // Hapus pesan sukses setelah 3 detik
     } catch (err) {
       setError(err.message);
     } finally {
@@ -73,7 +81,7 @@ export default function Customers() {
             Master Data
           </span>
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">Titik Pelanggan Kota Palu</h2>
-          <p className="text-sm text-slate-500 mt-0.5">Tambah pelanggan baru otomatis via Link Google Maps</p>
+          <p className="text-sm text-slate-500 mt-0.5">Kelola titik pelanggan dan unggah foto lokasi secara manual</p>
         </div>
         <div className="text-sm font-medium text-slate-600 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
           Total Pelanggan: <span className="font-bold text-indigo-600">{customers.length} Toko</span>
@@ -87,10 +95,17 @@ export default function Customers() {
         </div>
       )}
 
-      {/* Form Tambah Toko dengan Google Maps Link */}
+      {/* Success Alert */}
+      {successMessage && (
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-5 py-4 rounded-2xl text-sm">
+          {successMessage}
+        </div>
+      )}
+
+      {/* Form Tambah Toko dengan Tombol Upload Gambar */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-        <h3 className="text-base font-bold text-slate-900 mb-4">Tambah Titik Pelanggan via Link Google Maps</h3>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <h3 className="text-base font-bold text-slate-900 mb-4">Tambah Titik Pelanggan & Unggah Foto</h3>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           <input
             type="text"
             name="name"
@@ -103,32 +118,37 @@ export default function Customers() {
           <input
             type="url"
             name="gmaps_link"
-            placeholder="Paste Link Google Maps (Cth: https://maps.app.goo.gl/...)"
+            placeholder="Link Google Maps"
             value={formData.gmaps_link}
             onChange={handleInputChange}
             required
-            className="md:col-span-2 px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
-          <div className="flex gap-2">
-            <input
-              type="number"
-              name="demand"
-              placeholder="Demand (Botol)"
-              value={formData.demand}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-            <button
-              type="submit"
-              disabled={submitting}
-              className={`px-5 py-2.5 rounded-xl font-medium text-white text-sm shadow-sm transition-all whitespace-nowrap ${
-                submitting ? "bg-slate-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100"
-              }`}
-            >
-              {submitting ? "Memproses..." : "Simpan"}
-            </button>
-          </div>
+          <input
+            type="number"
+            name="demand"
+            placeholder="Permintaan (Botol)"
+            value={formData.demand}
+            onChange={handleInputChange}
+            required
+            className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          <input
+            type="file"
+            name="image"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-500 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 self-center"
+          />
+          <button
+            type="submit"
+            disabled={submitting}
+            className={`px-5 py-2.5 col-span-2 rounded-xl font-medium text-white text-sm shadow-sm transition-all ${
+              submitting ? "bg-slate-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100"
+            }`}
+          >
+            {submitting ? "Menyimpan..." : "Simpan Toko"}
+          </button>
         </form>
       </div>
 
@@ -141,45 +161,32 @@ export default function Customers() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/80 text-slate-500 text-xs font-semibold uppercase tracking-wider border-b border-slate-100">
-                  <th className="py-3.5 px-6">ID</th>
+                  <th className="py-3.5 px-6">#</th>
                   <th className="py-3.5 px-6">Nama Toko</th>
-                  <th className="py-3.5 px-6">Latitude</th>
-                  <th className="py-3.5 px-6">Longitude</th>
-                  <th className="py-3.5 px-6 text-center">Permintaan Harian</th>
+                  <th className="py-3.5 px-6">Koordinat (Lat, Lon)</th>
+                  <th className="py-3.5 px-6 text-center">Permintaan</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
-                {customers.map((item, index) => (
-                  // <tr key={item.id} onClick={()=> navigate(`./${item.id}`)} className="hover:bg-slate-100 transition-colors">
-                   <tr key={item.id} onClick={()=> {setSelectedItem(item); document.getElementById('my_modal_1').showModal();}} className="hover:bg-slate-100 transition-colors">
+                {customers.map((c, index) => (
+                  <tr key={c.id} onClick={() => Navigate(`/customers/${c.id}`)} className="hover:bg-slate-50/50 transition-colors">
                     <td className="py-4 px-6 font-semibold text-slate-900">{index+1}</td>
-                    <td className="py-4 px-6 font-medium text-slate-900">{item.name}</td>
-                    <td className="py-4 px-6 font-mono text-xs text-slate-600">{item.lat}</td>
-                    <td className="py-4 px-6 font-mono text-xs text-slate-600">{item.lon}</td>
+                    <td className="py-4 px-6 font-medium text-slate-900">{c.name}</td>
+                    <td className="py-4 px-6 font-mono text-xs text-slate-600">
+                      {c.lat}, {c.lon}
+                    </td>
                     <td className="py-4 px-6 text-center">
                       <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-700">
-                        {item.demand} Botol
+                        {c.demand} Botol
                       </span>
                     </td>
                   </tr>
-
                 ))}
               </tbody>
-                {console.log(selectedItem)}
-                {selectedItem && (
-                  <dialog id="my_modal_1" className="modal">
-                    <CardCustomers title={selectedItem.name} />
-                    <form method="dialog" className="modal-backdrop">
-                      <button>close</button>
-                    </form>
-                  </dialog>
-                )}
             </table>
           </div>
         )}
       </div>
-
-
     </div>
   );
 }

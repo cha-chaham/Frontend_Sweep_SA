@@ -1,12 +1,12 @@
 import React from 'react'
 
-const CardCustomers = ({title, address, latitude, longitude}) => {
+const CardCustomers = ({title, address, latitude, longitude, image_url}) => {
   return (
     <div className="card bg-base-100 w-96 shadow-sm">
   <figure>
     <img
-      src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
-      alt="Shoes" />
+      src={image_url}
+      alt={title} />
   </figure>
   <div className="card-body">
     <h2 className="card-title">{title}</h2>

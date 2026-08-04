@@ -41,12 +41,26 @@ export const getCustomerById = async (id) => {
 };
 
 // Tambahkan di dalam src/services/api.js
-export const addCustomer = async (customerData) => {
+export const addCustomer = async (formData) => {
   try {
-    const response = await api.post("/api/customers", customerData);
+    const response = await api.post("/api/customers", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   } catch (error) {
     const message = error.response?.data?.detail || "Gagal menambahkan pelanggan baru.";
+    throw new Error(message);
+  }
+};
+
+export const deleteCustomer = async (id) => {
+  try {
+    const response = await api.delete(`/api/customers/${id}`);
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.detail || "Gagal menghapus data pelanggan.";
     throw new Error(message);
   }
 };

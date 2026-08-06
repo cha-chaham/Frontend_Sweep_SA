@@ -4,6 +4,8 @@ import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
 import Customers from "./pages/Customers";
 import CustomersDetail from "./pages/CustomersDetail";
+import AdminDispatch from "./pages/AdminDispatch";
+import RouteDetails from "./pages/RoutesDetails";
 
 export default function App() {
   return (
@@ -15,6 +17,8 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/customers" element={<Customers />} />
             <Route path="/customers/:id" element={<CustomersDetail />} />
+            <Route path="/dispatch" element={<AdminDispatch />} />
+            <Route path="/schedule/:id" element={<RouteDetails />} />
           </Routes>
         </main>
       </div>

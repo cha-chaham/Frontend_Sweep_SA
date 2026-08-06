@@ -169,7 +169,9 @@ const handleLogoutAdmin = () => {
 
       {/* Form Tambah Toko dengan Tombol Upload Gambar */}
       {role === "admin" && (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <div>
+                <div onClick={()=>Navigate("/dispatch")} className="btn mb-3 w-full btn-warning">Tambah Rute Hari Ini</div>
+                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
         <h3 className="text-base font-bold text-slate-900 mb-4">Tambah Titik Pelanggan & Unggah Foto</h3>
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           <input
@@ -217,6 +219,7 @@ const handleLogoutAdmin = () => {
           </button>
         </form>
       </div>
+        </div>
       )}
 
       {/* Tabel Data Pelanggan */}

@@ -18,9 +18,9 @@ api.interceptors.request.use((config) => {
 });
 
 // Fungsi untuk menjalankan optimasi VRP
-export const runOptimization = async () => {
+export const runOptimization = async (customers) => {
   try {
-    const response = await api.post("/api/optimize");
+    const response = await api.post("/api/optimize", { customers });
     return response.data;
   } catch (error) {
     const message = error.response?.data?.detail || "Gagal mengambil data optimasi dari server backend.";
@@ -73,3 +73,55 @@ export const deleteCustomer = async (id) => {
     throw new Error(message);
   }
 };
+
+// --- SCHEDULED ROUTES API SERVICES ---
+
+/**
+ * Menyimpan dan menjadwalkan hasil optimasi rute (Khusus Admin)
+ * @param {Object} routeData - Berisi title, delivery_date, assigned_driver, dan routes_data
+ */
+export const saveScheduledRoute = async (routeData) => {
+  try {
+    const response = await api.post("/api/scheduled-routes", routeData);
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.detail || "Gagal menyimpan jadwal rute.";
+    throw new Error(message);
+  }
+};
+
+/**
+ * Mengambil daftar rute pengiriman khusus untuk hari ini (Untuk Driver / User)
+ */
+export const getTodaysRoutes = async () => {
+  try {
+    const response = await api.get("/api/scheduled-routes/today");
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.detail || "Gagal memuat rute pengiriman hari ini.";
+    throw new Error(message);
+  }
+};
+
+/**
+ * Mengambil seluruh riwayat / history pengiriman sebelumnya
+ */
+export const getRouteHistory = async () => {
+  try {
+    const response = await api.get("/api/scheduled-routes/history");
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.detail || "Gagal memuat riwayat perjalanan.";
+    throw new Error(message);
+  }
+};
+
+export const getScheduleById = async (id) => {
+  try {
+    const response = await api.get(`/api/scheduled-routes/${id}`);
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.detail || "Gagal memuat detail rute.";
+    throw new Error(message);
+  }
+}

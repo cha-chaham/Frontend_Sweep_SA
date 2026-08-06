@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { getCustomers, addCustomer, deleteCustomer } from "../services/api";
 import { useNavigate } from "react-router-dom";
+import swal from "../services/swal";
 
 export default function Customers() {
   const [customers, setCustomers] = useState([]);
@@ -8,6 +9,9 @@ export default function Customers() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [role, setRole] = useState(localStorage.getItem("role") || "user");
+
+  const [inputCode, setInputCode] = useState("");
 
   const Navigate = useNavigate();
 
@@ -17,6 +21,54 @@ export default function Customers() {
     demand: "",
     image: null
   });
+
+ const toggleRole = () => {
+  if (role === "admin") {
+    handleLogoutAdmin(); // Panggil fungsi logout
+  } else {
+    handleLoginAdmin();  // Panggil fungsi login via SweetAlert
+  }
+};
+
+  const handleLoginAdmin = async () => {
+  const { value: inputCode, isConfirmed } = await swal.fire({
+    title: "Masukkan Passcode Admin",
+    input: "password",
+    inputPlaceholder: "Passcode Admin",
+    showCancelButton: true,
+    confirmButtonText: "Masuk",
+    cancelButtonText: "Batal",
+  });
+
+  // Validasi: Pastikan user menekan tombol "Masuk" dan mengisi passcode
+  if (isConfirmed && inputCode) {
+    localStorage.setItem("role", "admin");
+    localStorage.setItem("admin_passcode", inputCode); // Simpan passcode ke localStorage
+    setRole("admin");
+
+    // Mengganti alert bawaan browser dengan notifikasi Swal yang lebih estetis
+    swal.fire({
+      icon: "success",
+      title: "Berhasil!",
+      text: "Berhasil masuk sebagai Admin!",
+      timer: 1500,
+      showConfirmButton: false,
+    });
+  }
+};
+
+const handleLogoutAdmin = () => {
+  setRole("user");
+  localStorage.removeItem("admin_passcode"); // Hapus passcode dari localStorage
+  localStorage.setItem("role", "user");
+  swal.fire({
+    title:"Keluar dari Admin",
+    icon: "info",
+    text: "Anda telah keluar dari peran Admin.",
+    timer: 1500,
+    showConfirmButton: false,
+  })
+};
 
   const fetchCustomerData = async () => {
     try {
@@ -74,6 +126,19 @@ export default function Customers() {
 
   return (
     <div className="space-y-8">
+      {/* Tombol Simulasi Ganti Role */}
+      <div className="flex justify-between items-center bg-slate-100 p-4 rounded-2xl">
+        <span className="text-sm font-medium text-slate-700">
+          Status Peran Aktif: <strong className="text-indigo-600 uppercase">{role}</strong>
+        </span>
+        <button
+          onClick={toggleRole}
+          className="px-4 py-2 bg-white border border-slate-200 text-xs font-semibold rounded-xl shadow-sm hover:bg-slate-50"
+        >
+          Ganti ke {role === "admin" ? "User" : "Admin"}
+        </button>
+      </div>
+
       {/* Header Halaman */}
       <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -103,7 +168,8 @@ export default function Customers() {
       )}
 
       {/* Form Tambah Toko dengan Tombol Upload Gambar */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+      {role === "admin" && (
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
         <h3 className="text-base font-bold text-slate-900 mb-4">Tambah Titik Pelanggan & Unggah Foto</h3>
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           <input
@@ -151,6 +217,7 @@ export default function Customers() {
           </button>
         </form>
       </div>
+      )}
 
       {/* Tabel Data Pelanggan */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">

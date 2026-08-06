@@ -11,6 +11,7 @@ export default function CustomersDetail() {
     const navigate = useNavigate();
     const [error, setError] = useState(null);
     const [successMessage, setSuccessMessage] = useState(null);
+    const [role, setRole] = useState(localStorage.getItem("role") || "user");
 
     const fetchCustomerDetail = async () => {
         try {
@@ -58,9 +59,9 @@ export default function CustomersDetail() {
       )}
         <div className="card bg-base-100 w-full shadow-sm flex-col">
         <div className=" flex flex-col lg:flex-row p-2">
-            <figure>
-                <img className="rounded-xl"
-                src={"http://127.0.0.1:8000"+customer?.image_url || "https://dummyimage.com/500/000/fff.jpg"}
+            <figure className="w-full">
+                <img className="rounded-xl w-full object-cover"
+                src={customer?.image_url ? `http://127.0.0.1:8000${customer.image_url}` : "https://dummyimage.com/500/000/fff.jpg"}
                 alt={customer?.name} className='w-full'/>
             </figure>
             <div className="card-body w-full">
@@ -73,9 +74,10 @@ export default function CustomersDetail() {
                 <div className="card-actions justify-end">
                 </div>
             </div>
-            <div>
+            {role === "admin" && (
+              <div>
                 <div className="btn btn-error text-white px-6" onClick={() => handleDelete(customer.id, customer.name)}>Delete</div>
-            </div>
+            </div>)}
         </div>
         <iframe className='w-full p-2 border-0 rounded-2xl' src={`https://maps.google.com/maps?q=${customer?.lat},${customer?.lon}&z=17&output=embed`} width="600" height="450" loading="lazy" referrerPolicy="strict-origin-when-cross-origin"></iframe>
     </div>

@@ -8,6 +8,15 @@ const api = axios.create({
   },
 });
 
+// Handle passcode admin
+api.interceptors.request.use((config) => {
+  const passcode = localStorage.getItem("admin_passcode");
+  if (passcode) {
+    config.headers["x-admin-passcode"] = passcode;
+  }
+  return config;
+});
+
 // Fungsi untuk menjalankan optimasi VRP
 export const runOptimization = async () => {
   try {

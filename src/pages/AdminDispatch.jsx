@@ -15,17 +15,45 @@ export default function AdminDispatch() {
   // Format: { [id]: { isSelected: boolean, demand: number } }
   const [selectedStores, setSelectedStores] = useState({});
 
+// 1. Perbaiki fungsi helper agar bisa menerima string atau objek Date
+function formatIndonesianDate(inputDate) {
+  if (!inputDate) return '-';
+
+  // Jika input sudah berupa objek Date, ubah ke string YYYY-MM-DD
+  let dateString = inputDate;
+  if (inputDate instanceof Date) {
+    dateString = inputDate.toISOString().split("T")[0];
+  }
+
+  const dateObj = new Date(dateString + "T00:00:00");
+
+  if (isNaN(dateObj.getTime())) return 'Format tidak valid';
+
+  const options = {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  };
+
+  return new Intl.DateTimeFormat('id-ID', options).format(dateObj);
+}
+
   // Form State untuk Penjadwalan
   const [dispatchForm, setDispatchForm] = useState({
-    title: "",
-    delivery_date: new Date().toISOString().split("T")[0],
-    assigned_driver: ""
+      delivery_date: new Date().toISOString().split("T")[0],
+      title: "",
+    assigned_driver: "Daniel"
   });
 
   // Ambil data pelanggan saat komponen dimuat
   useEffect(() => {
     fetchCustomers();
-  }, []);
+    setDispatchForm(prev => ({
+      ...prev,
+      title: `Pengantaran ${formatIndonesianDate(prev.delivery_date)}`
+    }));
+  }, [dispatchForm.delivery_date]);
 
   const fetchCustomers = async () => {
     try {
@@ -170,68 +198,69 @@ export default function AdminDispatch() {
       </div>
 
       {/* Grid Utama: Daftar Pelanggan & Form Publish Jadwal */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-        {/* Kolom Kiri: Tabel Seleksi Toko & Dynamic Demand */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
-          <div className="flex justify-between items-center">
+        {/* Kolom Kiri: Tabel Seleksi Toko */}
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4 w-full">
+            <div className="flex justify-between items-center">
             <h3 className="text-base font-bold text-slate-900">Pilih Toko & Atur Demand Harian</h3>
             <span className="text-xs text-slate-500 font-medium bg-slate-50 px-3 py-1 rounded-lg border border-slate-100">
-              Aktif: <strong className="text-indigo-600">{totalSelectedCount}</strong> dari {customers.length} Toko
+                Aktif: <strong className="text-indigo-600">{totalSelectedCount}</strong> dari {customers.length} Toko
             </span>
-          </div>
+            </div>
 
-          {loading ? (
+            {loading ? (
             <p className="text-sm text-slate-400 py-8 text-center">Memuat data toko...</p>
-          ) : (
-            <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
-              <table className="w-full text-left border-collapse">
-                <thead className="sticky top-0 bg-slate-50 z-10">
-                  <tr className="text-slate-500 text-xs font-semibold uppercase tracking-wider border-b border-slate-100">
+            ) : (
+            /* 2. Tambahkan max-h-[420px] agar kontainer memiliki batas dan scrollbar aktif */
+            <div className="overflow-x-auto overflow-y-auto max-h-105 pr-2">
+                <table className="w-full text-left border-collapse relative">
+                <thead className="sticky top-0 bg-slate-50 z-10 shadow-sm">
+                    <tr className="text-slate-500 text-xs font-semibold uppercase tracking-wider border-b border-slate-100">
                     <th className="py-3 px-4 text-center w-12">Antar</th>
                     <th className="py-3 px-4">Nama Toko</th>
                     <th className="py-3 px-4">Koordinat</th>
                     <th className="py-3 px-4 text-center w-36">Demand (Botol)</th>
-                  </tr>
+                    </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
-                  {customers.map((c) => {
+                    {customers.map((c) => {
                     const isChecked = selectedStores[c.id]?.isSelected ?? true;
                     const currentDemand = selectedStores[c.id]?.demand ?? c.demand;
 
                     return (
-                      <tr key={c.id} className={`hover:bg-slate-50/50 transition-colors ${!isChecked ? "opacity-40 bg-slate-50/30" : ""}`}>
+                        <tr key={c.id} className={`hover:bg-slate-50/50 transition-colors ${!isChecked ? "opacity-40 bg-slate-50/30" : ""}`}>
                         <td className="py-3 px-4 text-center">
-                          <input
+                            <input
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => handleToggleStore(c.id)}
                             className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"
-                          />
+                            />
                         </td>
                         <td className="py-3 px-4 font-medium text-slate-900">{c.name}</td>
                         <td className="py-3 px-4 font-mono text-xs text-slate-500">{c.lat}, {c.lon}</td>
                         <td className="py-3 px-4 text-center">
-                          <input
+                            <input
                             type="number"
                             min="0"
                             disabled={!isChecked}
                             value={currentDemand}
                             onChange={(e) => handleDemandChange(c.id, e.target.value)}
                             className="w-24 px-3 py-1.5 text-center rounded-xl border border-slate-200 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
-                          />
+                            />
                         </td>
-                      </tr>
+                        </tr>
                     );
-                  })}
+                    })}
                 </tbody>
-              </table>
+                </table>
             </div>
-          )}
+            )}
         </div>
 
         {/* Kolom Kanan: Form Publish Jadwal ke Driver */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col justify-between">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 justify-between">
           <div>
             <h3 className="text-base font-bold text-slate-900 mb-2">Publikasi Penugasan</h3>
             <p className="text-xs text-slate-500 mb-6">Kunci hasil optimasi rute ke dalam jadwal harian driver.</p>
@@ -246,7 +275,8 @@ export default function AdminDispatch() {
                   placeholder="Contoh: Rute Pagi Wilayah Kota"
                   value={dispatchForm.title}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-base-200 text-neutral-500"
+                  disabled
                 />
               </div>
 
@@ -271,7 +301,8 @@ export default function AdminDispatch() {
                   placeholder="Contoh: Andi Kurir"
                   value={dispatchForm.assigned_driver}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-base-200 text-neutral-500"
+                  disabled
                 />
               </div>
             </form>

@@ -3,27 +3,38 @@ import { NavLink } from "react-router-dom";
 
 export default function Navbar() {
   const linkClass = ({ isActive }) =>
-    `px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+    `px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
       isActive
         ? "bg-indigo-600 text-white shadow-sm shadow-indigo-100"
         : "text-slate-600 hover:bg-slate-100"
-    };`;
+    }`;
 
   return (
-    <header className="bg-white border-b border-slate-100 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold shadow-sm shadow-indigo-200">
+    <header className="bg-white border-b border-slate-100 sticky top-0 z-50 shrink-0">
+      <div className="px-4 h-14 flex items-center justify-between">
+        {/* Logo & Brand */}
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow-sm shadow-indigo-200">
             TG
           </div>
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600 block">Air Tahu Gurih</span>
-            <h1 className="text-sm font-bold text-slate-900 leading-tight">Logistik Palu</h1>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 block leading-none">
+              Tahu Gurih
+            </span>
+            <h1 className="text-xs font-bold text-slate-900 leading-tight mt-0.5">
+              Logistik
+            </h1>
           </div>
         </div>
-        <nav className="flex space-x-2">
-          <NavLink to="/" className={linkClass}>Dashboard Optimasi</NavLink>
-          <NavLink to="/customers" className={linkClass}>Data Pelanggan</NavLink>
+
+        {/* Navigasi Menu Mobile */}
+        <nav className="flex space-x-1">
+          <NavLink to="/" className={linkClass}>
+            Home
+          </NavLink>
+          <NavLink to="/customers" className={linkClass}>
+            Toko
+          </NavLink>
         </nav>
       </div>
     </header>

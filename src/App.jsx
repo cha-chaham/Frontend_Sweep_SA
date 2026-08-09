@@ -10,17 +10,25 @@ import RouteDetails from "./pages/RoutesDetails";
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
-        <Navbar />
-        <main className="p-6 md:p-10 max-w-7xl mx-auto">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/customers" element={<Customers />} />
-            <Route path="/customers/:id" element={<CustomersDetail />} />
-            <Route path="/dispatch" element={<AdminDispatch />} />
-            <Route path="/schedule/:id" element={<RouteDetails />} />
-          </Routes>
-        </main>
+      {/* Latar belakang luar (hanya terlihat di layar desktop/laptop) */}
+
+        {/* Bingkai Container Mobile */}
+        <div className="w-full md:w-[600px] m-auto py-5 px-4">
+
+          {/* Navbar di bagian atas frame */}
+          <Navbar />
+
+          {/* Area Konten Utama yang dapat di-scroll vertikal */}
+          <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-20">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/customers" element={<Customers />} />
+              <Route path="/customers/:id" element={<CustomersDetail />} />
+              <Route path="/dispatch" element={<AdminDispatch />} />
+              <Route path="/schedule/:id" element={<RouteDetails />} />
+            </Routes>
+          </main>
+
       </div>
     </BrowserRouter>
   );

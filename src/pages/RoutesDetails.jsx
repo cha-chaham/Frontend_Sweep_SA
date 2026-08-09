@@ -10,6 +10,7 @@ export default function RouteDetails() {
     const navigate = useNavigate();
 
     const [routeDetails, setRouteDetails] = useState(null);
+    const [allRoutes, setAllRoutes] = useState([])
 
     useEffect(() => {
         fetchRouteDetails();
@@ -19,6 +20,7 @@ export default function RouteDetails() {
         try {
             const data = await getScheduleById(id);
             setRouteDetails(data);
+            setAllRoutes(data.routes_data.routes)
         } catch(err){
             swal.fire({
                 title:"Error",
@@ -27,6 +29,23 @@ export default function RouteDetails() {
             })
         }
     }
+
+    // Fungsi helper untuk menghitung total waktu semua trip
+    const calculateTotalTime = (routes) => {
+    if (!routes || !Array.isArray(routes)) return 0;
+    return routes.reduce((acc, trip) => acc + (trip.total_time_minutes || 0), 0);
+    };
+
+    // Fungsi helper untuk memformat menit menjadi Jam & Menit (Contoh: 125 menit -> 2 jam 5 menit)
+    const formatDuration = (totalMinutes) => {
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = Math.round(totalMinutes % 60);
+    if (hours === 0) return `${minutes} menit`;
+    return `${hours} jam ${minutes} menit`;
+    };
+
+    const totalMins = calculateTotalTime(allRoutes)
+
 
     if (!routeDetails) return (
       <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center space-y-4">
@@ -60,20 +79,21 @@ export default function RouteDetails() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 text-xs">
-          <div className="bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 text-slate-600">
-            Tanggal: <strong className="text-slate-900">{routeDetails.delivery_date}</strong>
-          </div>
+
           <div className="bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 text-slate-600">
             Kurir: <strong className="text-slate-900">{routeDetails.assigned_driver || "Belum ditentukan"}</strong>
           </div>
           <div className="bg-indigo-50 px-3 py-2 rounded-xl border border-indigo-100 text-indigo-700 font-semibold">
             Total Jarak: {routeDetails.routes_data?.total_distance_optimal_km || 0} km
           </div>
+        <div className="bg-indigo-50 px-3 py-2 rounded-xl border border-indigo-100 text-indigo-700 font-semibold">
+            Estimasi Pengerjaan: {formatDuration(totalMins)}
+          </div>
         </div>
       </div>
 
       {/* Grid Trip Berdasarkan Hasil Optimasi */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {routeDetails.routes_data?.routes?.map((trip) => (
           <div
             key={trip.trip_id}
@@ -101,7 +121,7 @@ export default function RouteDetails() {
               {/* Timeline Urutan Antaran */}
               <div className="relative pl-6 space-y-5 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
                 {trip.route.map((stopName, idx) => {
-                  const isDepot = stopName === "Depot Air Tahu Gurih";
+                  const isDepot = stopName.name === "Depot Air Tahu Gurih";
                   return (
                     <div key={idx} className="relative flex items-start space-x-3">
                       {/* Titik Indikator Timeline */}
@@ -116,22 +136,32 @@ export default function RouteDetails() {
                       {/* Kartu Informasi Titik */}
                       <div className="flex-1 bg-slate-50/70 p-3.5 rounded-xl border border-slate-100">
                         <div className="flex justify-between items-center mb-1">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          <div className="flex flex-col gap-2">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                             Pemberhentian #{idx + 1}
                           </span>
+
+ <p className={`text-sm font-semibold ${isDepot ? "text-indigo-900 font-bold" : "text-slate-800"}`}>
+                          {stopName.name}
+                        </p>
+                          </div>
                           {isDepot ? (
                             <span className="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md font-semibold">
                               Titik Depot
                             </span>
                           ) : (
+                            <div className="flex flex-col gap-2">
                             <span className="text-[10px] bg-slate-200/60 text-slate-600 px-2 py-0.5 rounded-md font-medium">
                               Toko Pelanggan
                             </span>
+                            <span className="text-sm bg-slate-200/60 text-indigo-700 px-2 py-0.5 rounded-md font-medium">
+                              {stopName.demand} Botol
+                            </span>
+
+                            </div>
                           )}
                         </div>
-                        <p className={`text-sm font-semibold ${isDepot ? "text-indigo-900 font-bold" : "text-slate-800"}`}>
-                          {stopName}
-                        </p>
+
                       </div>
                     </div>
                   );
@@ -145,7 +175,7 @@ export default function RouteDetails() {
                 href={trip.gmaps_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-medium text-center shadow-sm shadow-emerald-100 transition-all flex items-center justify-center gap-2 block"
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-medium text-center shadow-sm shadow-emerald-100 transition-all flex items-center justify-center gap-2"
               >
                 🗺️ Buka Navigasi Google Maps (Trip #{trip.trip_id})
               </a>

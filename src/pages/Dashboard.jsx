@@ -37,11 +37,8 @@ export default function DriverDashboard() {
   return (
     <div className="space-y-8">
       {/* Header & Tab Switcher */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-4">
         <div>
-          <span className="inline-block px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 mb-2">
-            Panel Kurir / Driver
-          </span>
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">Dashboard Pengiriman</h2>
           <p className="text-sm text-slate-500 mt-0.5">Lihat rute penugasan hari ini dan riwayat perjalanan sebelumnya</p>
         </div>
@@ -50,7 +47,7 @@ export default function DriverDashboard() {
         <div className="flex bg-slate-100 p-1 rounded-xl">
           <button
             onClick={() => setActiveTab("today")}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+            className={`px-4 py-2 rounded-lg text-xs font-semibold w-full transition-all ${
               activeTab === "today" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-600 hover:text-slate-900"
             }`}
           >
@@ -58,7 +55,7 @@ export default function DriverDashboard() {
           </button>
           <button
             onClick={() => setActiveTab("history")}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+            className={`px-4 py-2 rounded-lg text-xs font-semibold w-full transition-all ${
               activeTab === "history" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-600 hover:text-slate-900"
             }`}
           >
@@ -84,22 +81,22 @@ export default function DriverDashboard() {
       ) : (
         <div className="space-y-6">
           {routesToDisplay.map((schedule) => (
-            <div key={schedule.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
+            <div key={schedule.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6 hover:border-blue-600 ease-in transition-all">
 
               {/* Informasi Jadwal */}
               <div onClick={()=>navigate(`/schedule/${schedule.id}`)} className="flex flex-col md:flex-row md:items-center justify-between border-slate-100 gap-2">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-bold text-slate-900">{schedule.delivery_date}</h3>
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
-                      {schedule.status}
-                    </span>
+                    <h3 className="text-lg font-bold text-slate-900">{schedule.title}</h3>
                   </div>
                   <p className="text-xs text-slate-500 mt-1">
                     Kurir: <strong className="text-slate-700">{schedule.assigned_driver || "Tidak ditentukan"}</strong> | Tanggal: {schedule.delivery_date}
                   </p>
                 </div>
                 <div className="flex flex-col gap-3">
+                    <span className="px-2.5 py-0.5 rounded-full text-xs text-center font-medium bg-emerald-50 text-emerald-700">
+                      {schedule.status}
+                    </span>
                   <div className="text-xs font-medium text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
                   Total Jarak Optimal: <strong className="text-indigo-600">{schedule.routes_data?.total_distance_optimal_km || 0} km</strong>
                 </div>

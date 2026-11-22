@@ -6,55 +6,60 @@ import swal from "sweetalert2";
 import { FaArrowLeft } from "react-icons/fa";
 
 export default function RouteDetails() {
-    const { id } = useParams();
-    const navigate = useNavigate();
+  const { id } = useParams();
+  const navigate = useNavigate();
 
-    const [routeDetails, setRouteDetails] = useState(null);
-    const [allRoutes, setAllRoutes] = useState([])
+  const [routeDetails, setRouteDetails] = useState(null);
+  const [allRoutes, setAllRoutes] = useState([]);
 
-    useEffect(() => {
-        fetchRouteDetails();
-    }, [])
+  useEffect(() => {
+    fetchRouteDetails();
+  }, []);
 
-    const fetchRouteDetails = async () => {
-        try {
-            const data = await getScheduleById(id);
-            setRouteDetails(data);
-            setAllRoutes(data.routes_data.routes)
-        } catch(err){
-            swal.fire({
-                title:"Error",
-                text:"Gagal Mendapatkan data",
-                timer:2000
-            })
-        }
+  const fetchRouteDetails = async () => {
+    try {
+      const data = await getScheduleById(id);
+      setRouteDetails(data);
+      setAllRoutes(data.routes_data.routes);
+    } catch (err) {
+      swal.fire({
+        title: "Error",
+        text: "Gagal Mendapatkan data",
+        timer: 2000,
+      });
     }
+  };
 
-    // Fungsi helper untuk menghitung total waktu semua trip
-    const calculateTotalTime = (routes) => {
+  // Fungsi helper untuk menghitung total waktu semua trip
+  const calculateTotalTime = (routes) => {
     if (!routes || !Array.isArray(routes)) return 0;
-    return routes.reduce((acc, trip) => acc + (trip.total_time_minutes || 0), 0);
-    };
+    return routes.reduce(
+      (acc, trip) => acc + (trip.total_time_minutes || 0),
+      0,
+    );
+  };
 
-    // Fungsi helper untuk memformat menit menjadi Jam & Menit (Contoh: 125 menit -> 2 jam 5 menit)
-    const formatDuration = (totalMinutes) => {
+  // Fungsi helper untuk memformat menit menjadi Jam & Menit (Contoh: 125 menit -> 2 jam 5 menit)
+  const formatDuration = (totalMinutes) => {
     const hours = Math.floor(totalMinutes / 60);
     const minutes = Math.round(totalMinutes % 60);
     if (hours === 0) return `${minutes} menit`;
     return `${hours} jam ${minutes} menit`;
-    };
+  };
 
-    const totalMins = calculateTotalTime(allRoutes)
+  const totalMins = calculateTotalTime(allRoutes);
 
-
-    if (!routeDetails) return (
+  if (!routeDetails)
+    return (
       <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center space-y-4">
-        <p className="text-sm text-slate-500">Tidak ada data rute yang dipilih.</p>
+        <p className="text-sm text-slate-500">
+          Tidak ada data rute yang dipilih.
+        </p>
         <button
-          onClick={()=>navigate(-1)}
+          onClick={() => navigate(-1)}
           className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-md font-semibold rounded-xl shadow-sm transition-all"
         >
-          <FaArrowLeft/> Kembali ke Daftar
+          <FaArrowLeft /> Kembali ke Daftar
         </button>
       </div>
     );
@@ -62,31 +67,36 @@ export default function RouteDetails() {
   return (
     <div className="space-y-6">
       {/* Tombol Kembali & Header Ringkasan */}
-          <button
-            onClick={()=>navigate(-1)}
-            className="p-2.5 rounded-xl border btn btn-primary px-6 transition-all text-md font-semibold flex items-center gap-1.5"
-          >
-            <FaArrowLeft/> Kembali
-          </button>
+      <button
+        onClick={() => navigate(-1)}
+        className="p-2.5 rounded-xl border btn btn-primary px-6 transition-all text-md font-semibold flex items-center gap-1.5"
+      >
+        <FaArrowLeft /> Kembali
+      </button>
       <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-4">
           <div>
             <span className="inline-block px-2.5 py-0.5 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 mb-1">
               Detail Perjalanan
             </span>
-            <h2 className="text-xl font-bold tracking-tight text-slate-900">{routeDetails.title}</h2>
+            <h2 className="text-xl font-bold tracking-tight text-slate-900">
+              {routeDetails.title}
+            </h2>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 text-xs">
-
           <div className="bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 text-slate-600">
-            Kurir: <strong className="text-slate-900">{routeDetails.assigned_driver || "Belum ditentukan"}</strong>
+            Kurir:{" "}
+            <strong className="text-slate-900">
+              {routeDetails.assigned_driver || "Belum ditentukan"}
+            </strong>
           </div>
           <div className="bg-indigo-50 px-3 py-2 rounded-xl border border-indigo-100 text-indigo-700 font-semibold">
-            Total Jarak: {routeDetails.routes_data?.total_distance_optimal_km || 0} km
+            Total Jarak:{" "}
+            {routeDetails.routes_data?.total_distance_optimal_km || 0} km
           </div>
-        <div className="bg-indigo-50 px-3 py-2 rounded-xl border border-indigo-100 text-indigo-700 font-semibold">
+          <div className="bg-indigo-50 px-3 py-2 rounded-xl border border-indigo-100 text-indigo-700 font-semibold">
             Estimasi Pengerjaan: {formatDuration(totalMins)}
           </div>
         </div>
@@ -107,8 +117,12 @@ export default function RouteDetails() {
                     #{trip.trip_id}
                   </span>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900">Trip Pengiriman #{trip.trip_id}</h3>
-                    <p className="text-[11px] text-slate-400">Estimasi waktu: {trip.total_time_minutes} menit</p>
+                    <h3 className="text-sm font-bold text-slate-900">
+                      Trip Pengiriman #{trip.trip_id}
+                    </h3>
+                    <p className="text-[11px] text-slate-400">
+                      Estimasi waktu: {trip.total_time_minutes} menit
+                    </p>
                   </div>
                 </div>
                 <div className="text-right">
@@ -123,7 +137,10 @@ export default function RouteDetails() {
                 {trip.route.map((stopName, idx) => {
                   const isDepot = stopName.name === "Depot Air Tahu Gurih";
                   return (
-                    <div key={idx} className="relative flex items-start space-x-3">
+                    <div
+                      key={idx}
+                      className="relative flex items-start space-x-3"
+                    >
                       {/* Titik Indikator Timeline */}
                       <div
                         className={`absolute -left-6 mt-1 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm transition-all ${
@@ -138,12 +155,14 @@ export default function RouteDetails() {
                         <div className="flex justify-between items-center mb-1">
                           <div className="flex flex-col gap-2">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                            Pemberhentian #{idx + 1}
-                          </span>
+                              Pemberhentian #{idx + 1}
+                            </span>
 
- <p className={`text-sm font-semibold ${isDepot ? "text-indigo-900 font-bold" : "text-slate-800"}`}>
-                          {stopName.name}
-                        </p>
+                            <p
+                              className={`text-sm font-semibold ${isDepot ? "text-indigo-900 font-bold" : "text-slate-800"}`}
+                            >
+                              {stopName.name}
+                            </p>
                           </div>
                           {isDepot ? (
                             <span className="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md font-semibold">
@@ -151,17 +170,15 @@ export default function RouteDetails() {
                             </span>
                           ) : (
                             <div className="flex flex-col gap-2">
-                            <span className="text-[10px] bg-slate-200/60 text-slate-600 px-2 py-0.5 rounded-md font-medium">
-                              Toko Pelanggan
-                            </span>
-                            <span className="text-sm bg-slate-200/60 text-indigo-700 px-2 py-0.5 rounded-md font-medium">
-                              {stopName.demand} Botol
-                            </span>
-
+                              <span className="text-[10px] bg-slate-200/60 text-slate-600 px-2 py-0.5 rounded-md font-medium">
+                                Toko Pelanggan
+                              </span>
+                              <span className="text-sm bg-slate-200/60 text-indigo-700 px-2 py-0.5 rounded-md font-medium">
+                                {stopName.demand} Botol
+                              </span>
                             </div>
                           )}
                         </div>
-
                       </div>
                     </div>
                   );

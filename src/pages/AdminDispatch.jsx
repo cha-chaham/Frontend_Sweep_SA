@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { saveScheduledRoute, getCustomers, runOptimization } from "../services/api";
+import {
+  saveScheduledRoute,
+  getCustomers,
+  runOptimization,
+} from "../services/api";
 import swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 
@@ -15,43 +19,43 @@ export default function AdminDispatch() {
   // Format: { [id]: { isSelected: boolean, demand: number } }
   const [selectedStores, setSelectedStores] = useState({});
 
-// 1. Perbaiki fungsi helper agar bisa menerima string atau objek Date
-function formatIndonesianDate(inputDate) {
-  if (!inputDate) return '-';
+  // 1. Perbaiki fungsi helper agar bisa menerima string atau objek Date
+  function formatIndonesianDate(inputDate) {
+    if (!inputDate) return "-";
 
-  // Jika input sudah berupa objek Date, ubah ke string YYYY-MM-DD
-  let dateString = inputDate;
-  if (inputDate instanceof Date) {
-    dateString = inputDate.toISOString().split("T")[0];
+    // Jika input sudah berupa objek Date, ubah ke string YYYY-MM-DD
+    let dateString = inputDate;
+    if (inputDate instanceof Date) {
+      dateString = inputDate.toISOString().split("T")[0];
+    }
+
+    const dateObj = new Date(dateString + "T00:00:00");
+
+    if (isNaN(dateObj.getTime())) return "Format tidak valid";
+
+    const options = {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    };
+
+    return new Intl.DateTimeFormat("id-ID", options).format(dateObj);
   }
-
-  const dateObj = new Date(dateString + "T00:00:00");
-
-  if (isNaN(dateObj.getTime())) return 'Format tidak valid';
-
-  const options = {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  };
-
-  return new Intl.DateTimeFormat('id-ID', options).format(dateObj);
-}
 
   // Form State untuk Penjadwalan
   const [dispatchForm, setDispatchForm] = useState({
-      delivery_date: new Date().toISOString().split("T")[0],
-      title: "",
-    assigned_driver: "Daniel"
+    delivery_date: new Date().toISOString().split("T")[0],
+    title: "",
+    assigned_driver: "Daniel",
   });
 
   // Ambil data pelanggan saat komponen dimuat
   useEffect(() => {
     fetchCustomers();
-    setDispatchForm(prev => ({
+    setDispatchForm((prev) => ({
       ...prev,
-      title: `Pengantaran ${formatIndonesianDate(prev.delivery_date)}`
+      title: `Pengantaran ${formatIndonesianDate(prev.delivery_date)}`,
     }));
   }, [dispatchForm.delivery_date]);
 
@@ -66,7 +70,7 @@ function formatIndonesianDate(inputDate) {
       data.forEach((c) => {
         initialSelection[c.id] = {
           isSelected: true, // Default tercentang
-          demand: c.demand  // Mengambil demand default dari database
+          demand: c.demand, // Mengambil demand default dari database
         };
       });
       setSelectedStores(initialSelection);
@@ -83,8 +87,8 @@ function formatIndonesianDate(inputDate) {
       ...prev,
       [id]: {
         ...prev[id],
-        isSelected: !prev[id].isSelected
-      }
+        isSelected: !prev[id].isSelected,
+      },
     }));
     setOptimizationResult(null); // Reset hasil optimasi jika pilihan berubah
   };
@@ -96,8 +100,8 @@ function formatIndonesianDate(inputDate) {
       ...prev,
       [id]: {
         ...prev[id],
-        demand: numValue
-      }
+        demand: numValue,
+      },
     }));
     setOptimizationResult(null); // Reset hasil optimasi jika demand berubah
   };
@@ -109,7 +113,7 @@ function formatIndonesianDate(inputDate) {
   };
 
   // Jalankan Kalkulasi VRP dengan Data Dinamis (Hanya toko yang dicentang & demand terbaru)
- const handleRunOptimization = async () => {
+  const handleRunOptimization = async () => {
     // Saring toko yang dicentang dan ambil data lengkapnya beserta demand dinamis
     const activePayload = customers
       .filter((c) => selectedStores[c.id]?.isSelected)
@@ -119,11 +123,15 @@ function formatIndonesianDate(inputDate) {
         lat: c.lat,
         lon: c.lon,
         demand: selectedStores[c.id].demand, // Menggunakan demand dinamis terbaru
-        gmaps_link: c.gmaps_link || ""
+        gmaps_link: c.gmaps_link || "",
       }));
 
     if (activePayload.length === 0) {
-      swal.fire("Peringatan", "Pilih minimal satu toko untuk diantar.", "warning");
+      swal.fire(
+        "Peringatan",
+        "Pilih minimal satu toko untuk diantar.",
+        "warning",
+      );
       return;
     }
 
@@ -133,7 +141,11 @@ function formatIndonesianDate(inputDate) {
       setOptimizationResult(res);
       swal.fire("Berhasil", "Optimasi rute berhasil dikalkulasi!", "success");
     } catch (err) {
-      swal.fire("Gagal", err.response?.data?.detail || "Gagal menjalankan optimasi.", "error");
+      swal.fire(
+        "Gagal",
+        err.response?.data?.detail || "Gagal menjalankan optimasi.",
+        "error",
+      );
     } finally {
       setOptimizing(false);
     }
@@ -143,7 +155,11 @@ function formatIndonesianDate(inputDate) {
   const handleSaveDispatch = async (e) => {
     e.preventDefault();
     if (!optimizationResult) {
-      swal.fire("Peringatan", "Harap jalankan optimasi rute terlebih dahulu sebelum menjadwalkan.", "warning");
+      swal.fire(
+        "Peringatan",
+        "Harap jalankan optimasi rute terlebih dahulu sebelum menjadwalkan.",
+        "warning",
+      );
       return;
     }
 
@@ -152,19 +168,25 @@ function formatIndonesianDate(inputDate) {
         title: dispatchForm.title,
         delivery_date: dispatchForm.delivery_date,
         assigned_driver: dispatchForm.assigned_driver,
-        routes_data: optimizationResult
+        routes_data: optimizationResult,
       };
 
       await saveScheduledRoute(payload);
-      swal.fire("Sukses!", "Jadwal pengiriman berhasil disimpan dan dikirim ke Driver.", "success").finally(() => {
-        navigate("/");
-      });
+      swal
+        .fire(
+          "Sukses!",
+          "Jadwal pengiriman berhasil disimpan dan dikirim ke Driver.",
+          "success",
+        )
+        .finally(() => {
+          navigate("/");
+        });
 
       // Reset form
       setDispatchForm({
         title: "",
         delivery_date: new Date().toISOString().split("T")[0],
-        assigned_driver: ""
+        assigned_driver: "",
       });
       setOptimizationResult(null);
     } catch (err) {
@@ -173,7 +195,35 @@ function formatIndonesianDate(inputDate) {
   };
 
   // Hitung total toko yang dicentang
-  const totalSelectedCount = Object.values(selectedStores).filter(s => s.isSelected).length;
+  const totalSelectedCount = Object.values(selectedStores).filter(
+    (s) => s.isSelected,
+  ).length;
+
+  const totalDemand = Object.values(selectedStores).reduce((sum, store) => {
+    return store.isSelected ? sum + (Number(store.demand) || 0) : sum;
+  }, 0);
+
+  // Cek apakah semua toko sedang terpilih
+  const isAllSelected =
+    customers.length > 0 &&
+    customers.every((c) => selectedStores[c.id]?.isSelected);
+
+  // Handler untuk mencentang / membatalkan centang semua toko sekaligus
+  const handleToggleAll = () => {
+    const newStatus = !isAllSelected; // Jika semua terpilih, ubah jadi false (batalkan semua). Sebaliknya, jadi true.
+    const updatedSelection = {};
+
+    customers.forEach((c) => {
+      updatedSelection[c.id] = {
+        ...selectedStores[c.id],
+        isSelected: newStatus,
+        demand: selectedStores[c.id]?.demand ?? c.demand,
+      };
+    });
+
+    setSelectedStores(updatedSelection);
+    setOptimizationResult(null); // Reset hasil optimasi
+  };
 
   return (
     <div className="space-y-8">
@@ -181,93 +231,145 @@ function formatIndonesianDate(inputDate) {
       <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <span className="inline-block px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700 mb-2">
-            Panel Administrator
+            Menu Penambahan Rute
           </span>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Manajemen & Penjadwalan Rute</h2>
-          <p className="text-sm text-slate-500 mt-0.5">Tentukan toko aktif, ubah demand harian, dan tetapkan rute kurir</p>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+            Manajemen & Penjadwalan Rute
+          </h2>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Tentukan toko aktif, ubah demand harian, dan tetapkan rute kurir
+          </p>
         </div>
         <button
           onClick={handleRunOptimization}
           disabled={optimizing || totalSelectedCount === 0}
           className={`px-5 py-2.5 rounded-xl font-medium text-white text-sm shadow-sm transition-all ${
-            optimizing || totalSelectedCount === 0 ? "bg-slate-300 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100"
+            optimizing || totalSelectedCount === 0
+              ? "bg-slate-300 cursor-not-allowed"
+              : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100"
           }`}
         >
-          {optimizing ? "Menghitung Rute..." : `⚡ Kalkulasi VRP (${totalSelectedCount} Toko Terpilih)`}
+          {optimizing
+            ? "Menghitung Rute..."
+            : `⚡ Kalkulasi VRP (${totalSelectedCount} Toko Terpilih)`}
         </button>
       </div>
 
       {/* Grid Utama: Daftar Pelanggan & Form Publish Jadwal */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
         {/* Kolom Kiri: Tabel Seleksi Toko */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4 w-full">
-            <div className="flex justify-between items-center">
-            <h3 className="text-base font-bold text-slate-900">Pilih Toko & Atur Demand Harian</h3>
+          <div className="flex justify-between items-center">
+            <h3 className="text-base font-bold text-slate-900">
+              Pilih Toko & Atur Demand Harian
+            </h3>
             <span className="text-xs text-slate-500 font-medium bg-slate-50 px-3 py-1 rounded-lg border border-slate-100">
-                Aktif: <strong className="text-indigo-600">{totalSelectedCount}</strong> dari {customers.length} Toko
+              Aktif:{" "}
+              <strong className="text-indigo-600">{totalSelectedCount}</strong>{" "}
+              dari {customers.length} Toko
             </span>
-            </div>
+          </div>
 
-            {loading ? (
-            <p className="text-sm text-slate-400 py-8 text-center">Memuat data toko...</p>
-            ) : (
+          {loading ? (
+            <p className="text-sm text-slate-400 py-8 text-center">
+              Memuat data toko...
+            </p>
+          ) : (
             /* 2. Tambahkan max-h-[420px] agar kontainer memiliki batas dan scrollbar aktif */
             <div className="overflow-x-auto overflow-y-auto max-h-105 pr-2">
-                <table className="w-full text-left border-collapse relative">
+              <table className="w-full text-left border-collapse relative">
                 <thead className="sticky top-0 bg-slate-50 z-10 shadow-sm">
-                    <tr className="text-slate-500 text-xs font-semibold uppercase tracking-wider border-b border-slate-100">
-                    <th className="py-3 px-4 text-center w-12">Antar</th>
+                  <tr className="text-slate-500 text-xs font-semibold uppercase tracking-wider border-b border-slate-100">
+                    <th className="py-3 px-4 text-center w-12">
+                      {/* Master Checkbox untuk Pilih/Batalkan Semua */}
+                      <input
+                        type="checkbox"
+                        checked={isAllSelected}
+                        onChange={handleToggleAll}
+                        className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"
+                        title="Pilih/Batalkan Semua"
+                      />
+                    </th>
                     <th className="py-3 px-4">Nama Toko</th>
                     <th className="py-3 px-4">Koordinat</th>
-                    <th className="py-3 px-4 text-center w-36">Demand (Botol)</th>
-                    </tr>
+                    <th className="py-3 px-4 text-center w-36">
+                      Demand (Botol)
+                    </th>
+                  </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
-                    {customers.map((c) => {
+                  {customers.map((c) => {
                     const isChecked = selectedStores[c.id]?.isSelected ?? true;
-                    const currentDemand = selectedStores[c.id]?.demand ?? c.demand;
+                    const currentDemand =
+                      selectedStores[c.id]?.demand ?? c.demand;
 
                     return (
-                        <tr key={c.id} className={`hover:bg-slate-50/50 transition-colors ${!isChecked ? "opacity-40 bg-slate-50/30" : ""}`}>
+                      <tr
+                        key={c.id}
+                        className={`hover:bg-slate-50/50 transition-colors ${!isChecked ? "opacity-40 bg-slate-50/30" : ""}`}
+                      >
                         <td className="py-3 px-4 text-center">
-                            <input
+                          <input
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => handleToggleStore(c.id)}
                             className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"
-                            />
+                          />
                         </td>
-                        <td className="py-3 px-4 font-medium text-slate-900">{c.name}</td>
-                        <td className="py-3 px-4 font-mono text-xs text-slate-500">{c.lat}, {c.lon}</td>
+                        <td className="py-3 px-4 font-medium text-slate-900">
+                          {c.name}
+                        </td>
+                        <td className="py-3 px-4 font-mono text-xs text-slate-500">
+                          {c.lat}, {c.lon}
+                        </td>
                         <td className="py-3 px-4 text-center">
-                            <input
+                          <input
                             type="number"
                             min="0"
                             disabled={!isChecked}
                             value={currentDemand}
-                            onChange={(e) => handleDemandChange(c.id, e.target.value)}
+                            onChange={(e) =>
+                              handleDemandChange(c.id, e.target.value)
+                            }
                             className="w-24 px-3 py-1.5 text-center rounded-xl border border-slate-200 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
-                            />
+                          />
                         </td>
-                        </tr>
+                      </tr>
                     );
-                    })}
+                  })}
                 </tbody>
-                </table>
+                <tfoot className="sticky bottom-0 bg-slate-50 z-10 shadow-sm">
+                  <tr className="text-slate-500 text-xs font-semibold uppercase tracking-wider border-b border-slate-100">
+                    <td className="py-3 px-4 text-center" colSpan={3}>
+                      Total
+                    </td>
+                    <td className="py-3 px-4">{totalDemand}</td>
+                  </tr>
+                </tfoot>
+              </table>
             </div>
-            )}
+          )}
         </div>
 
         {/* Kolom Kanan: Form Publish Jadwal ke Driver */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 justify-between">
           <div>
-            <h3 className="text-base font-bold text-slate-900 mb-2">Publikasi Penugasan</h3>
-            <p className="text-xs text-slate-500 mb-6">Kunci hasil optimasi rute ke dalam jadwal harian driver.</p>
+            <h3 className="text-base font-bold text-slate-900 mb-2">
+              Publikasi Penugasan
+            </h3>
+            <p className="text-xs text-slate-500 mb-6">
+              Kunci hasil optimasi rute ke dalam jadwal harian driver.
+            </p>
 
-            <form onSubmit={handleSaveDispatch} id="dispatch-form" className="space-y-4">
+            <form
+              onSubmit={handleSaveDispatch}
+              id="dispatch-form"
+              className="space-y-4"
+            >
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Judul / Sesi Pengiriman</label>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
+                  Judul / Sesi Pengiriman
+                </label>
                 <input
                   type="text"
                   name="title"
@@ -281,7 +383,9 @@ function formatIndonesianDate(inputDate) {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Tanggal Pengiriman</label>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
+                  Tanggal Pengiriman
+                </label>
                 <input
                   type="date"
                   name="delivery_date"
@@ -293,7 +397,9 @@ function formatIndonesianDate(inputDate) {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Nama Kurir / Driver</label>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
+                  Nama Kurir / Driver
+                </label>
                 <input
                   type="text"
                   name="assigned_driver"
@@ -311,7 +417,9 @@ function formatIndonesianDate(inputDate) {
           <div className="mt-6 pt-4 border-t border-slate-100">
             <div className="mb-3 text-xs flex justify-between text-slate-500">
               <span>Status Kalkulasi:</span>
-              <span className={`font-semibold ${optimizationResult ? "text-emerald-600" : "text-amber-600"}`}>
+              <span
+                className={`font-semibold ${optimizationResult ? "text-emerald-600" : "text-amber-600"}`}
+              >
                 {optimizationResult ? "Siap Dipublikasikan" : "Belum Dihitung"}
               </span>
             </div>
@@ -320,14 +428,15 @@ function formatIndonesianDate(inputDate) {
               form="dispatch-form"
               disabled={!optimizationResult}
               className={`w-full py-3 rounded-xl font-medium text-white text-sm shadow-sm transition-all ${
-                !optimizationResult ? "bg-slate-300 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100"
+                !optimizationResult
+                  ? "bg-slate-300 cursor-not-allowed"
+                  : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100"
               }`}
             >
               Simpan & Kirim ke Driver
             </button>
           </div>
         </div>
-
       </div>
     </div>
   );

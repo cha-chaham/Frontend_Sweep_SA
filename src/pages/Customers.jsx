@@ -19,56 +19,8 @@ export default function Customers() {
     name: "",
     gmaps_link: "",
     demand: "",
-    image: null
+    image: null,
   });
-
- const toggleRole = () => {
-  if (role === "admin") {
-    handleLogoutAdmin(); // Panggil fungsi logout
-  } else {
-    handleLoginAdmin();  // Panggil fungsi login via SweetAlert
-  }
-};
-
-  const handleLoginAdmin = async () => {
-  const { value: inputCode, isConfirmed } = await swal.fire({
-    title: "Masukkan Passcode Admin",
-    input: "password",
-    inputPlaceholder: "Passcode Admin",
-    showCancelButton: true,
-    confirmButtonText: "Masuk",
-    cancelButtonText: "Batal",
-  });
-
-  // Validasi: Pastikan user menekan tombol "Masuk" dan mengisi passcode
-  if (isConfirmed && inputCode) {
-    localStorage.setItem("role", "admin");
-    localStorage.setItem("admin_passcode", inputCode); // Simpan passcode ke localStorage
-    setRole("admin");
-
-    // Mengganti alert bawaan browser dengan notifikasi Swal yang lebih estetis
-    swal.fire({
-      icon: "success",
-      title: "Berhasil!",
-      text: "Berhasil masuk sebagai Admin!",
-      timer: 1500,
-      showConfirmButton: false,
-    });
-  }
-};
-
-const handleLogoutAdmin = () => {
-  setRole("user");
-  localStorage.removeItem("admin_passcode"); // Hapus passcode dari localStorage
-  localStorage.setItem("role", "user");
-  swal.fire({
-    title:"Keluar dari Admin",
-    icon: "info",
-    text: "Anda telah keluar dari peran Admin.",
-    timer: 1500,
-    showConfirmButton: false,
-  })
-};
 
   const fetchCustomerData = async () => {
     try {
@@ -126,30 +78,24 @@ const handleLogoutAdmin = () => {
 
   return (
     <div className="space-y-8">
-      {/* Tombol Simulasi Ganti Role */}
-      <div className="flex justify-between items-center bg-slate-100 p-4 rounded-2xl">
-        <span className="text-sm font-medium text-slate-700">
-          Status Peran Aktif: <strong className="text-indigo-600 uppercase">{role}</strong>
-        </span>
-        <button
-          onClick={toggleRole}
-          className="px-4 py-2 bg-white border border-slate-200 text-xs font-semibold rounded-xl shadow-sm hover:bg-slate-50"
-        >
-          Ganti ke {role === "admin" ? "User" : "Admin"}
-        </button>
-      </div>
-
       {/* Header Halaman */}
       <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <span className="inline-block px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 mb-2">
             Master Data
           </span>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Titik Pelanggan Kota Palu</h2>
-          <p className="text-sm text-slate-500 mt-0.5">Kelola titik pelanggan dan unggah foto lokasi secara manual</p>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+            Titik Pelanggan Kota Palu
+          </h2>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Kelola titik pelanggan dan unggah foto lokasi secara manual
+          </p>
         </div>
         <div className="text-sm font-medium text-slate-600 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
-          Total Pelanggan: <span className="font-bold text-indigo-600">{customers.length} Toko</span>
+          Total Pelanggan:{" "}
+          <span className="font-bold text-indigo-600">
+            {customers.length} Toko
+          </span>
         </div>
       </div>
 
@@ -167,65 +113,12 @@ const handleLogoutAdmin = () => {
         </div>
       )}
 
-      {/* Form Tambah Toko dengan Tombol Upload Gambar */}
-      {role === "admin" && (
-        <div>
-                <div onClick={()=>Navigate("/dispatch")} className="btn mb-3 w-full btn-warning">Tambah Rute Hari Ini</div>
-                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-        <h3 className="text-base font-bold text-slate-900 mb-4">Tambah Titik Pelanggan & Unggah Foto</h3>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-          <input
-            type="text"
-            name="name"
-            placeholder="Nama Toko / Pelanggan"
-            value={formData.name}
-            onChange={handleInputChange}
-            required
-            className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-          <input
-            type="url"
-            name="gmaps_link"
-            placeholder="Link Google Maps"
-            value={formData.gmaps_link}
-            onChange={handleInputChange}
-            required
-            className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-          <input
-            type="number"
-            name="demand"
-            placeholder="Permintaan (Botol)"
-            value={formData.demand}
-            onChange={handleInputChange}
-            required
-            className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-          <input
-            type="file"
-            name="image"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-500 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 self-center"
-          />
-          <button
-            type="submit"
-            disabled={submitting}
-            className={`px-5 py-2.5 col-span-2 rounded-xl font-medium text-white text-sm shadow-sm transition-all ${
-              submitting ? "bg-slate-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100"
-            }`}
-          >
-            {submitting ? "Menyimpan..." : "Simpan Toko"}
-          </button>
-        </form>
-      </div>
-        </div>
-      )}
-
       {/* Tabel Data Pelanggan */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-slate-400 text-sm">Memuat data pelanggan dari database MySQL...</div>
+          <div className="p-12 text-center text-slate-400 text-sm">
+            Memuat data pelanggan dari database MySQL...
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -239,9 +132,17 @@ const handleLogoutAdmin = () => {
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
                 {customers.map((c, index) => (
-                  <tr key={c.id} onClick={() => Navigate(`/customers/${c.id}`)} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-4 px-6 font-semibold text-slate-900">{index+1}</td>
-                    <td className="py-4 px-6 font-medium text-slate-900">{c.name}</td>
+                  <tr
+                    key={c.id}
+                    onClick={() => Navigate(`/customers/${c.id}`)}
+                    className="hover:bg-slate-50/50 transition-colors"
+                  >
+                    <td className="py-4 px-6 font-semibold text-slate-900">
+                      {index + 1}
+                    </td>
+                    <td className="py-4 px-6 font-medium text-slate-900">
+                      {c.name}
+                    </td>
                     <td className="py-4 px-6 font-mono text-xs text-slate-600">
                       {c.lat}, {c.lon}
                     </td>

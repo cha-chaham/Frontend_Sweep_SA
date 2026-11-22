@@ -1,10 +1,13 @@
 import axios from "axios";
 
+const token = localStorage.getItem("token");
+
 // Membuat instance axios dengan konfigurasi dasar
 const api = axios.create({
-  baseURL: "http://127.0.0.1:8000",
+  baseURL: "http://192.168.1.11:8000",
   headers: {
     "Content-Type": "application/json",
+    Authorization: token ? `Bearer ${token}` : "",
   },
 });
 
@@ -17,13 +20,43 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Jangan langsung redirect jika sedang di halaman login
+      if (window.location.pathname !== "/login") {
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  },
+);
+
 // Fungsi untuk menjalankan optimasi VRP
 export const runOptimization = async (customers) => {
   try {
     const response = await api.post("/api/optimize", { customers });
     return response.data;
   } catch (error) {
-    const message = error.response?.data?.detail || "Gagal mengambil data optimasi dari server backend.";
+    const message =
+      error.response?.data?.detail ||
+      "Gagal mengambil data optimasi dari server backend.";
     throw new Error(message);
   }
 };
@@ -34,7 +67,9 @@ export const getCustomers = async () => {
     const response = await api.get("/api/customers");
     return response.data;
   } catch (error) {
-    const message = error.response?.data?.detail || "Gagal mengambil data pelanggan dari database MySQL.";
+    const message =
+      error.response?.data?.detail ||
+      "Gagal mengambil data pelanggan dari database MySQL.";
     throw new Error(message);
   }
 };
@@ -44,7 +79,9 @@ export const getCustomerById = async (id) => {
     const response = await api.get(`/api/customers/${id}`);
     return response.data;
   } catch (error) {
-    const message = error.response?.data?.detail || "Gagal mengambil data pelanggan dari database MySQL.";
+    const message =
+      error.response?.data?.detail ||
+      "Gagal mengambil data pelanggan dari database MySQL.";
     throw new Error(message);
   }
 };
@@ -59,7 +96,8 @@ export const addCustomer = async (formData) => {
     });
     return response.data;
   } catch (error) {
-    const message = error.response?.data?.detail || "Gagal menambahkan pelanggan baru.";
+    const message =
+      error.response?.data?.detail || "Gagal menambahkan pelanggan baru.";
     throw new Error(message);
   }
 };
@@ -69,7 +107,8 @@ export const deleteCustomer = async (id) => {
     const response = await api.delete(`/api/customers/${id}`);
     return response.data;
   } catch (error) {
-    const message = error.response?.data?.detail || "Gagal menghapus data pelanggan.";
+    const message =
+      error.response?.data?.detail || "Gagal menghapus data pelanggan.";
     throw new Error(message);
   }
 };
@@ -85,7 +124,8 @@ export const saveScheduledRoute = async (routeData) => {
     const response = await api.post("/api/scheduled-routes", routeData);
     return response.data;
   } catch (error) {
-    const message = error.response?.data?.detail || "Gagal menyimpan jadwal rute.";
+    const message =
+      error.response?.data?.detail || "Gagal menyimpan jadwal rute.";
     throw new Error(message);
   }
 };
@@ -98,7 +138,8 @@ export const getTodaysRoutes = async () => {
     const response = await api.get("/api/scheduled-routes/today");
     return response.data;
   } catch (error) {
-    const message = error.response?.data?.detail || "Gagal memuat rute pengiriman hari ini.";
+    const message =
+      error.response?.data?.detail || "Gagal memuat rute pengiriman hari ini.";
     throw new Error(message);
   }
 };
@@ -111,7 +152,8 @@ export const getRouteHistory = async () => {
     const response = await api.get("/api/scheduled-routes/history");
     return response.data;
   } catch (error) {
-    const message = error.response?.data?.detail || "Gagal memuat riwayat perjalanan.";
+    const message =
+      error.response?.data?.detail || "Gagal memuat riwayat perjalanan.";
     throw new Error(message);
   }
 };
@@ -124,4 +166,15 @@ export const getScheduleById = async (id) => {
     const message = error.response?.data?.detail || "Gagal memuat detail rute.";
     throw new Error(message);
   }
-}
+};
+
+export const getUserProfile = async () => {
+  try {
+    const response = await api.get("/api/admin/users");
+    return response.data;
+  } catch (error) {
+    const message =
+      error.response?.data?.detail || "Gagal memuat profil pengguna.";
+    throw new Error(message);
+  }
+};
